@@ -1,5 +1,38 @@
 ---
+
 - hosts: hummingbird
+  pre_tasks:
+    - name: Create download tmp dir
+      tempfile:
+        state: directory
+      register: downloadtmpdir
+      run_once: True
+      delegate_to: localhost
+    - name: Find latest hummingbird binary
+      shell: curl -s https://api.github.com/repos/troubling/hummingbird/releases/latest | jq --raw-output '.assets[0] | .browser_download_url'
+      when: hummingbird_version is not defined or hummingbird_version == ''
+      register: hummingbird_binary_url
+      run_once: True
+      delegate_to: localhost
+    - name: Download latest hummingbird binary
+      get_url:
+        url: "{{ hummingbird_binary_url.stdout }}"
+        dest: "{{downloadtmpdir.path}}/hummingbird"
+        mode: 0755
+        force: yes
+      when: not hummingbird_binary_url|skipped
+      run_once: True
+      delegate_to: localhost
+    - name: Download specific hummingbird binary
+      get_url:
+        url: "https://github.com/troubling/hummingbird/releases/download/{{hummingbird_version}}/hummingbird"
+        dest: "{{downloadtmpdir.path}}/hummingbird"
+        mode: 0755
+        force: yes
+      when: hummingbird_binary_url|skipped
+      run_once: True
+      delegate_to: localhost
+
   become: yes
   roles:
     - { role: common, tags: ['common'] }
