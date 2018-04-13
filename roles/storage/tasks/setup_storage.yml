@@ -50,4 +50,4 @@
       path: /srv/node/{{device}}1
       owner: hummingbird
       group: hummingbird
-  ignore_errors: ignore_setup_storage_errors == "yes"
+  ignore_errors: "{{ignore_setup_storage_errors == \"yes\"}}"
